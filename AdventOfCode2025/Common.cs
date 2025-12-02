@@ -1,0 +1,16 @@
+static class Common
+{
+    public static void ForEach<T>(this IEnumerable<T> sequence, Action<T> action)
+    {
+        foreach (T item in sequence)
+            action(item);
+    }
+
+    public static IEnumerable<string> ReadLines(this TextReader reader)
+    {
+        while (reader.ReadLine() is string line)
+        {
+            yield return line;
+        }
+    }
+}
