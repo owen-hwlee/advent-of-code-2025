@@ -2,24 +2,39 @@
 {
     internal static void Run(TextReader reader)
     {
-        int result = reader.LoadMoves().StartPassAt(50, 0).Count;
-        Console.Write(result);
+        List<int> rotations = reader.LoadMoves().ToList();
+        int resultPart1 = rotations.StartPassAt(50, Part.Part1).Count;
+        int resultPart2 = rotations.StartPassAt(50, Part.Part2).Count;
+        Console.WriteLine($"Answer to Part 1 = {resultPart1}");
+        Console.WriteLine($"Answer to Part 2 = {resultPart2}");
     }
 
-    private static (int Position, int Count) StartPassAt(this IEnumerable<int> rotations, int initialValue, int passingPoint) =>
-        passingPoint is < 0 or >= 100 ? throw new ArgumentOutOfRangeException() :
+    private static (int Position, int Count) StartPassAt(this IEnumerable<int> rotations, int initialValue, Part part) =>
         rotations.Aggregate((initialValue, 0),
-            ((int, int) state, int rotation) => state.Move(rotation, passingPoint));
+            ((int, int) state, int rotation) => state.Move(rotation, part));
 
-    private static (int Position, int Count) Move(this (int position, int count) state, int rotation, int passingPoint)
+    private static (int Position, int Count) Move(this (int position, int count) state, int rotation, Part part)
     {
         int newPosition = state.position.Apply(rotation);
-        return (newPosition, state.count + (newPosition.Passes(passingPoint) ? 1 : 0));
+        int numHits = part switch
+        {
+            Part.Part1 => newPosition.PointsAt0() ? 1 : 0,
+            Part.Part2 => state.position.CountPassesOf0By(rotation),
+            _ => throw new NotSupportedException(),
+        };
+        return (newPosition, state.count + numHits);
     }
 
-    private static int Apply(this int position, int rotation) => (position + rotation + 100) % 100;
+    private static int Apply(this int position, int rotation) => (((position + rotation) % 100) + 100) % 100;
 
-    private static bool Passes(this int position, int passingPoint) => passingPoint == position;
+    private static bool PointsAt0(this int position) => position == 0;
+
+    private static int CountPassesOf0By(this int position, int rotation) => (position + rotation) switch
+    {
+        _ when position == 0 => Math.Abs(rotation / 100),
+        > 0 and < 100 => 0,
+        int gross => Math.Abs(gross / 100) + (gross <= 0 ? 1 : 0),
+    };
 
     private static IEnumerable<int> LoadMoves(this TextReader reader) => reader.ReadLines().Select(ParseMove);
 
@@ -29,4 +44,10 @@
         ['R', .. string num] => int.Parse(num),
         _ => throw new NotSupportedException(),
     };
+
+    private enum Part
+    {
+        Part1,
+        Part2,
+    }
 }
