@@ -1,6 +1,7 @@
 ﻿Action<TextReader>[] challenges =
 [
     Day01.Run,
+    Day02.Run,
 ];
 
 TextReader GetInput(int dayNumber) => Directory.GetFiles(Directory.GetCurrentDirectory(), $"Day{dayNumber:D2}.txt", SearchOption.AllDirectories) switch
