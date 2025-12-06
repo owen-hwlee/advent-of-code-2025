@@ -13,4 +13,6 @@ static class Common
             yield return line;
         }
     }
+
+    public static ulong Sum(this IEnumerable<ulong> ulongs) => ulongs.Aggregate(0UL, (acc, x) => acc + x);
 }
