@@ -6,6 +6,15 @@ static class Common
             action(item);
     }
 
+    public static IEnumerable<T> Do<T>(this IEnumerable<T> sequence, Action<T> action)
+    {
+        foreach (T item in sequence)
+        {
+            action(item);
+            yield return item;
+        }
+    }
+
     public static IEnumerable<string> ReadLines(this TextReader reader)
     {
         while (reader.ReadLine() is string line)

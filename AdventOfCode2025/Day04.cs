@@ -2,32 +2,38 @@ static class Day04
 {
     internal static void Run(TextReader reader)
     {
-        bool[][] grid = reader.GetGrid();
-        int resultPart1 = grid.FindForkLiftPositions().Count();
+        HashSet<(int Row, int Col)> rolls = reader.GetRollsPositions();
+        int resultPart1 = rolls.GetNumRemoved(1);
         Console.WriteLine($"Answer to Part 1 = {resultPart1}");
+        int resultPart2 = rolls.GetNumRemoved();
+        Console.WriteLine($"Answer to Part 2 = {resultPart2}");
     }
 
-    private static IEnumerable<(int Row, int Col)> GetAllCoordinatesOfDimensions(this (int row, int col) start,
-                                                                          (int row, int col) size) => Enumerable
-        .Range(start.row, size.row)
-        .SelectMany(r => Enumerable.Range(start.col, size.col), (row, col) => (row, col));
+    private static int GetNumRemoved(this HashSet<(int Row, int Col)> coords, int remainingAttempts = int.MaxValue) =>
+        remainingAttempts == 0 ? 0 :
+            coords.FindRemovableRolls() switch
+            {
+                { Count: 0 } => 0,
+                {} removables => removables.Count + coords.Except(removables).ToHashSet().GetNumRemoved(remainingAttempts - 1),
+            };
 
-    private static IEnumerable<(int Row, int Col)> GetAllNeighboursWithin(this (int row, int col) pos,
-                                                                          (int row, int col) boundary) => (pos.row - 1, pos.col - 1)
-        .GetAllCoordinatesOfDimensions((3, 3))
-        .Where(p =>
-            p.Row >= 0 && p.Row < boundary.row          // Row boundary
-            && p.Col >= 0 && p.Col < boundary.col       // Col boundary
-            && (p.Row != pos.row || p.Col != pos.col)); // Exclude itself
+    private static HashSet<(int Row, int Col)> FindRemovableRolls(this HashSet<(int Row, int Col)> coords) => coords
+        .Where(coords.Accessible)
+        .ToHashSet();
 
-    private static (int Row, int Col) Dimensions(this bool[][] grid) => (grid.Length, grid[0].Length);
+    private static bool Accessible(this HashSet<(int Row, int Col)> coords, (int Row, int Col) pair) =>
+    (
+        from r in new int[] { -1, 0, 1 }
+        from c in new int[] { -1, 0, 1 }
+        let neighbour = (pair.Row + r, pair.Col + c)
+        where (r, c) is not (0, 0) && coords.Contains(neighbour)
+        select neighbour
+    )
+        .Count() < 4;
 
-    private static IEnumerable<(int Row, int Col)> FindForkLiftPositions(this bool[][] grid) => (0, 0)
-        .GetAllCoordinatesOfDimensions(grid.Dimensions())
-        .Where(pos => grid[pos.Row][pos.Col])
-        .Where(pos => pos.GetAllNeighboursWithin(grid.Dimensions()).Count(p => grid[p.Row][p.Col]) < 4);
-
-    private static bool[][] GetGrid(this TextReader reader) => reader.ReadLines()
-        .Select(r => r.Select(c => c == '@').ToArray())
-        .ToArray();
+    private static HashSet<(int Row, int Col)> GetRollsPositions(this TextReader reader) => reader.ReadLines()
+        .SelectMany((r, row) => r.Select((item, col) => (row, col, isRoll: item == '@')))
+        .Where(t => t.isRoll)
+        .Select(t => (t.row, t.col))
+        .ToHashSet();
 }
