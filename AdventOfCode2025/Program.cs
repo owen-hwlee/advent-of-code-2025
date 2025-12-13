@@ -4,9 +4,10 @@
     Day02.Run,
     Day03.Run,
     Day04.Run,
+    Day05.Run,
 ];
 
-TextReader GetInput(int dayNumber) => Directory.GetFiles(Directory.GetCurrentDirectory(), $"Day{dayNumber:D2}.txt", SearchOption.AllDirectories) switch
+TextReader InputOf(int dayNumber) => Directory.GetFiles(Directory.GetCurrentDirectory(), $"Day{dayNumber:D2}.txt", SearchOption.AllDirectories) switch
 {
     [string filePath, ..] => new StreamReader(filePath),
     _ => Console.In,
@@ -30,4 +31,4 @@ do
     break;
 } while (true);
 
-challenges[dayNumber - 1](GetInput(dayNumber));
+challenges[dayNumber - 1](InputOf(dayNumber));
