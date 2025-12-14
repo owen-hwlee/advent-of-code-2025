@@ -5,6 +5,7 @@
     Day03.Run,
     Day04.Run,
     Day05.Run,
+    Day06.Run,
 ];
 
 TextReader InputOf(int dayNumber) => Directory.GetFiles(Directory.GetCurrentDirectory(), $"Day{dayNumber:D2}.txt", SearchOption.AllDirectories) switch
